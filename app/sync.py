@@ -1,12 +1,10 @@
-import urllib, json
-import pandas as pd
+import json
 import pandas_datareader as web
 from datetime import datetime
 import unicodedata
-import numpy as np
 import os
-import pickle
 import requests
+
 
 STOCKS_URL = 'https://api.iextrading.com/1.0/ref-data/symbols'
 CHANNEL = 'iex'
@@ -16,6 +14,8 @@ STOCK_NAMES_FILE = 'stock_names.json'
 
 DATE_FROM = datetime(2017, 1, 1)
 DATE_TO = datetime(2019, 12, 22)
+
+FOLDER = os.path.dirname(os.path.abspath(__file__)) + '/' + STOCKS_FOLDER + '/'
 
 
 def to_string(u_string):
@@ -51,8 +51,9 @@ def save_stocks(skip_exists):
             print 'file for ' + name + ' already exists'
             continue
 
-        stock_data = web.DataReader(symbol, CHANNEL, DATE_FROM, DATE_TO)['close']
+        stock_data = web.DataReader(symbol, CHANNEL, DATE_FROM, DATE_TO)
         stock_data.to_csv(file_path)
         print name + ' was saved'
 
-save_stocks(True)
+
+# save_stocks(True)
