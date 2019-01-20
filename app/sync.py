@@ -20,7 +20,7 @@ def save_stocks(skip_exists):
 
     data = stock_names
     count_stoks = len(data)
-    print count_stoks
+    print(count_stoks)
     first_valid_date = None
 
     for stock in data:
@@ -29,7 +29,7 @@ def save_stocks(skip_exists):
         file_path = FOLDER + symbol + '.csv'
 
         if skip_exists and os.path.isfile(file_path):
-            print 'file for ' + name + ' already exists'
+            print('file for ' + name + ' already exists')
             continue
 
         try:
@@ -43,7 +43,7 @@ def save_stocks(skip_exists):
             delete_symbol(symbol)
             continue
         stock_data.to_csv(file_path)
-        print name + ' was saved'
+        print(name + ' was saved')
 
 
 save_stocks(True)
