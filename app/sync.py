@@ -42,7 +42,12 @@ def save_stocks(skip_exists):
         except Exception:
             delete_symbol(symbol)
             continue
-        stock_data.to_csv(file_path)
+
+        try:
+            stock_data.to_csv(file_path)
+        except Exception:
+            delete_symbol(symbol)
+
         print(name + ' was saved')
 
 

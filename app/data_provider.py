@@ -28,9 +28,9 @@ def get_stock_symbols(limit):
     if os.path.isfile(STOCK_NAMES_FILE_PATH):
         with open(STOCK_NAMES_FILE_PATH) as stock_names_file:
             stock_names = json.load(stock_names_file)
-            i = 0
+            i = 1
             for stock in stock_names:
-                if limit < i:
+                if limit != 0 and limit < i:
                     break
                 symbols.append(to_string(stock['symbol']))
                 i += 1
