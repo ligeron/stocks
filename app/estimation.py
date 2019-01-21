@@ -11,11 +11,8 @@ class Estimation:
     stocks = None
 
     def __init__(self):
-        symbols = self.get_best_stocks(30).values()
+        symbols = self.get_best_stocks(5).values()
         self.stocks = get_stock_data_by_symbols(symbols)
-
-    def main(self):
-        print self.sharped_ratio_eval_random(self.stocks).max()
 
     def get_ret_vol_sr(self, weights):
         log_ret = np.log(self.stocks / self.stocks.shift(1))
@@ -69,22 +66,22 @@ class Estimation:
 
         return sharpe_arr.max()
 
-    def sharped_ratio_eval_random(self, stocks):
-        log_ret = np.log(stocks / stocks.shift(1))
-        all_weights = np.zeros((NUM_PORTS, len(stocks.columns)))
+    def sharped_ratio_eval_random(self):
+        log_ret = np.log(self.stocks / self.stocks.shift(1))
+        all_weights = np.zeros((NUM_PORTS, len(self.stocks.columns)))
         ret_arr = np.zeros(NUM_PORTS)
         vol_arr = np.zeros(NUM_PORTS)
         sharpe_arr = np.zeros(NUM_PORTS)
 
         for ind in range(NUM_PORTS):
-            weights = np.array(np.random.random(len(stocks.columns)))
+            weights = np.array(np.random.random(len(self.stocks.columns)))
             weights = weights / np.sum(weights)
             all_weights[ind, :] = weights
             ret_arr[ind] = np.sum((log_ret.mean() * weights) * 252)
             vol_arr[ind] = np.sqrt(np.dot(weights.T, np.dot(log_ret.cov() * 252, weights)))
             sharpe_arr[ind] = ret_arr[ind] / vol_arr[ind]
 
-        return sharpe_arr
+        return (sharpe_arr, all_weights)
 
     def get_best_stocks(self, limit):
         if os.path.isfile(SR_FILE_PATH):
@@ -92,7 +89,7 @@ class Estimation:
                 sorted_stocks = json.load(file)
         else:
             sorted_stocks = {}
-            symbols = get_stock_symbols(0)[1:2500]
+            symbols = get_stock_symbols(0)
             for symbol in symbols:
                 sorted_stocks[self.get_sharped_ratio_by_stock(symbol)] = symbol
             file = open(SR_FILE_PATH, "w")
@@ -110,5 +107,10 @@ class Estimation:
         return result
 
 
-x = Estimation()
-x.sharped_ratio_eval_minimizer()
+est = Estimation()
+sharpe_arr, all_weights = est.sharped_ratio_eval_random()
+print est.stocks.columns
+
+print sharpe_arr.max()
+arg_max = sharpe_arr.argmax()
+print all_weights[arg_max, :]

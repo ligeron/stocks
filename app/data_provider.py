@@ -5,6 +5,8 @@ import unicodedata
 
 
 def to_string(u_string):
+    if not isinstance(u_string, unicode):
+        return u_string
     return unicodedata.normalize('NFKD', u_string).encode('ascii', 'ignore')
 
 
