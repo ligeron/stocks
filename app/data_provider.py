@@ -39,15 +39,20 @@ def get_stock_symbols(limit):
     return symbols
 
 
-def get_stock_data_by_symbol(symbol):
-    return pd.read_csv(FOLDER + symbol + '.csv', index_col='date', parse_dates=True)
+def get_stock_data_by_symbol(symbol, date_from = None, date_to = None):
+    stocks = pd.read_csv(FOLDER + symbol + '.csv', index_col='date', parse_dates=True)
+
+    if date_from or date_to:
+        stocks = stocks.loc[date_from:date_to]
+
+    return stocks
 
 
-def get_stock_data_by_symbols(symbols):
+def get_stock_data_by_symbols(symbols, date_from = None, date_to = None):
     stock_datas = []
     valid_symbols = []
     for symbol in symbols:
-        stocks = get_stock_data_by_symbol(symbol)
+        stocks = get_stock_data_by_symbol(symbol, date_from, date_to)
         stock_datas.append(stocks['close'])
         valid_symbols.append(symbol)
 

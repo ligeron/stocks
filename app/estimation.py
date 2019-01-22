@@ -2,60 +2,20 @@ from data_provider import get_stock_symbols, get_stock_data_by_symbols
 import numpy as np
 from settings import *
 from data_provider import to_string
-from scipy.optimize import minimize
 
-NUM_PORTS = 1000
+NUM_PORTS = 10000
 
 
 class Estimation:
     stocks = None
+    date_from = None
+    date_to = None
 
-    def __init__(self):
-        symbols = self.get_best_stocks(5).values()
-        self.stocks = get_stock_data_by_symbols(symbols)
-
-    def get_ret_vol_sr(self, weights):
-        log_ret = np.log(self.stocks / self.stocks.shift(1))
-        weights = np.array(weights)
-        ret = np.sum(log_ret.mean() * weights) * 252
-        vol = np.sqrt(np.dot(weights.T, np.dot(log_ret.cov() * 252, weights)))
-        sr = ret / vol
-        return np.array([ret, vol, sr])
-
-    def neg_sharpe(self, weights):
-        return self.get_ret_vol_sr(weights)[2] * -1
-
-    def check_sum(self, weights):
-        return np.sum(weights) - 1
-
-    def minimize_volatility(self, weights):
-        return self.get_ret_vol_sr(weights)[1]
-
-    def sharped_ratio_eval_minimizer(self):
-        stocks_count = len(self.stocks.columns)
-        frontier_y = np.linspace(0, 0.3, 3)
-        frontier_volatility = []
-
-        for possible_return in frontier_y:
-            # function for return
-            cons = ({'type': 'eq', 'fun': self.check_sum},
-                    {'type': 'eq', 'fun': lambda w: self.get_ret_vol_sr(w)[0] - possible_return})
-            bound_template = (0, 1)
-            i = 0
-            guess = 1 / float(stocks_count)
-            bounds = []
-            init_guess = []
-            while i < stocks_count:
-                bounds.append(bound_template)
-                init_guess.append(guess)
-                i += 1
-
-            bounds = tuple(bounds)
-
-            result = minimize(self.minimize_volatility, init_guess, method='SLSQP', bounds=bounds, constraints=cons)
-
-            frontier_volatility.append(result['fun'])
-        print frontier_volatility
+    def __init__(self, date_from, date_to):
+        self.date_from = date_from
+        self.date_to = date_to
+        symbols = self.get_best_stocks(10)
+        self.stocks = get_stock_data_by_symbols(symbols, date_from=self.date_from, date_to=self.date_to)
 
     def get_sharped_ratio_by_stock(self, symbol):
         stocks = get_stock_data_by_symbols([symbol])
@@ -64,7 +24,7 @@ class Estimation:
         vol_arr = np.sqrt(np.dot(1, np.dot(log_ret.cov() * 252, 1)))
         sharpe_arr = ret_arr / vol_arr
 
-        return sharpe_arr.max()
+        return {"symbol": symbol, "ret": ret_arr, "vol": vol_arr.max(), "sharpe": sharpe_arr.max()}
 
     def sharped_ratio_eval_random(self):
         log_ret = np.log(self.stocks / self.stocks.shift(1))
@@ -81,36 +41,36 @@ class Estimation:
             vol_arr[ind] = np.sqrt(np.dot(weights.T, np.dot(log_ret.cov() * 252, weights)))
             sharpe_arr[ind] = ret_arr[ind] / vol_arr[ind]
 
-        return (sharpe_arr, all_weights)
+        return (sharpe_arr, all_weights, ret_arr)
 
     def get_best_stocks(self, limit):
         if os.path.isfile(SR_FILE_PATH):
             with open(SR_FILE_PATH) as file:
-                sorted_stocks = json.load(file)
+                stock_params = json.load(file)
         else:
-            sorted_stocks = {}
-            symbols = get_stock_symbols(0)
+            stock_params = []
+            symbols = get_stock_symbols(2000)
             for symbol in symbols:
-                sorted_stocks[self.get_sharped_ratio_by_stock(symbol)] = symbol
+                stock_params.append(self.get_sharped_ratio_by_stock(symbol))
             file = open(SR_FILE_PATH, "w")
-            file.write(json.dumps(sorted_stocks))
+            file.write(json.dumps(stock_params))
             file.close()
 
-        i = 1
-        result = {}
-        for key in sorted(sorted_stocks, reverse=True):
-            if i > limit:
-                break
-            result[key] = to_string(sorted_stocks[key])
-            i += 1
+        stocks_sorted_by_ret = sorted(stock_params, key=lambda x: x['ret'], reverse=True)[:500]
+        stocks_sorted_by_sharpe = sorted(stocks_sorted_by_ret, key=lambda x: x['sharpe'], reverse=True)[:limit]
+
+        result = []
+        for stock_param in stocks_sorted_by_sharpe:
+            result.append(to_string(stock_param['symbol']))
 
         return result
+#
+#
+# est = Estimation('2017-01-03', '2018-01-03')
+# sharpe_arr, all_weights, ret_arr = est.sharped_ratio_eval_random()
+# print est.stocks.columns
+#
+# print sharpe_arr.max()
+# arg_max = sharpe_arr.argmax()
+# print all_weights[arg_max, :]
 
-
-est = Estimation()
-sharpe_arr, all_weights = est.sharped_ratio_eval_random()
-print est.stocks.columns
-
-print sharpe_arr.max()
-arg_max = sharpe_arr.argmax()
-print all_weights[arg_max, :]
