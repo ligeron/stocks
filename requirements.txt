@@ -2,3 +2,4 @@ pandas
 pandas_datareader
 numpy
 scipy
+futures

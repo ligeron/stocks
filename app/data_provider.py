@@ -2,6 +2,7 @@ import pandas as pd
 from settings import *
 import json
 import unicodedata
+import requests
 
 
 def to_string(u_string):
@@ -23,23 +24,35 @@ def delete_symbol(symbol):
             stock_names_file = open(STOCK_NAMES_FILE_PATH, "w")
             stock_names_file.write(filtered_stocks_json)
             stock_names_file.close()
+            print('Company with symbol ' + symbol + ' was deleted')
 
 
-def get_stock_symbols(limit):
+def get_url_content(url, verbose=False):
+    try:
+        result = json.loads(requests.get(url).content)
+        if verbose:
+            print(url + ' was opened')
+    except Exception:
+        return None
+
+    return result
+
+
+def get_stock_symbols(limit=None):
     symbols = []
     if os.path.isfile(STOCK_NAMES_FILE_PATH):
         with open(STOCK_NAMES_FILE_PATH) as stock_names_file:
             stock_names = json.load(stock_names_file)
             i = 1
             for stock in stock_names:
-                if limit != 0 and limit < i:
+                if limit and limit < i:
                     break
                 symbols.append(to_string(stock['symbol']))
                 i += 1
     return symbols
 
 
-def get_stock_data_by_symbol(symbol, date_from = None, date_to = None):
+def get_stock_data_by_symbol(symbol, date_from=None, date_to=None):
     stocks = pd.read_csv(FOLDER + symbol + '.csv', index_col='date', parse_dates=True)
 
     if date_from or date_to:
@@ -48,7 +61,7 @@ def get_stock_data_by_symbol(symbol, date_from = None, date_to = None):
     return stocks
 
 
-def get_stock_data_by_symbols(symbols, date_from = None, date_to = None):
+def get_stock_data_by_symbols(symbols, date_from=None, date_to=None):
     stock_datas = []
     valid_symbols = []
     for symbol in symbols:
