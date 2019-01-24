@@ -35,8 +35,7 @@ def save_stocks(skip_exists=True):
             pass
     print('Symbols to delete:')
     print(symbols_to_delete)
-    for symbol_to_delete in symbols_to_delete:
-        delete_symbol(symbol_to_delete)
+    delete_symbol(symbols_to_delete, multiple=True)
 
     print('Finish')
 

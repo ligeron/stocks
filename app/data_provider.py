@@ -11,20 +11,21 @@ def to_string(u_string):
     return unicodedata.normalize('NFKD', u_string).encode('ascii', 'ignore')
 
 
-def delete_symbol(symbol):
+def delete_symbol(symbol, multiple=False):
     if os.path.isfile(STOCK_NAMES_FILE_PATH):
         with open(STOCK_NAMES_FILE_PATH) as stock_names_file:
             stocks = json.load(stock_names_file)
             filtered_stocks = []
             for stock in stocks:
                 current_symbol = to_string(stock['symbol'])
-                if symbol != current_symbol:
+                if (multiple and (current_symbol not in symbol)) or (not multiple and symbol != current_symbol):
                     filtered_stocks.append(stock)
             filtered_stocks_json = json.dumps(filtered_stocks)
             stock_names_file = open(STOCK_NAMES_FILE_PATH, "w")
             stock_names_file.write(filtered_stocks_json)
             stock_names_file.close()
-            print('Company with symbol ' + symbol + ' was deleted')
+            print (symbol)
+            print('Was deleted')
 
 
 def get_url_content(url, verbose=False):
@@ -40,16 +41,22 @@ def get_url_content(url, verbose=False):
 
 def get_stock_symbols(limit=None):
     symbols = []
+
+    stock_names = get_stocks_data()
+    i = 1
+    for stock in stock_names:
+        if limit and limit < i:
+            break
+        symbols.append(to_string(stock['symbol']))
+        i += 1
+
+    return symbols
+
+
+def get_stocks_data():
     if os.path.isfile(STOCK_NAMES_FILE_PATH):
         with open(STOCK_NAMES_FILE_PATH) as stock_names_file:
-            stock_names = json.load(stock_names_file)
-            i = 1
-            for stock in stock_names:
-                if limit and limit < i:
-                    break
-                symbols.append(to_string(stock['symbol']))
-                i += 1
-    return symbols
+            return json.load(stock_names_file)
 
 
 def get_stock_data_by_symbol(symbol, date_from=None, date_to=None):
@@ -73,3 +80,14 @@ def get_stock_data_by_symbols(symbols, date_from=None, date_to=None):
     stocks.columns = valid_symbols
 
     return stocks
+
+
+def get_distinct_attribute(attribute_name):
+    attribute_options = []
+    data = get_stocks_data()
+    for stock in data:
+        option = to_string(stock[attribute_name])
+        if not option in attribute_options:
+            attribute_options.append(option)
+
+    return attribute_options
