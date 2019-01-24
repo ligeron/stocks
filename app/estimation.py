@@ -4,15 +4,13 @@ from settings import *
 from data_provider import to_string
 import json
 
-class Estimation:
-    stocks = None
-    date_from = None
-    date_to = None
-    iterations_number = 1000
-    stocks_count = 15
-    stocks_with_max_ret = 500
 
-    def __init__(self, date_from, date_to):
+class Estimation:
+
+    def __init__(self, date_from, date_to, stocks_count=15, iterations_number=1000, stocks_with_max_ret=500):
+        self.iterations_number = iterations_number
+        self.stocks_count = stocks_count
+        self.stocks_with_max_ret = stocks_with_max_ret
         self.date_from = date_from
         self.date_to = date_to
         symbols = self.get_best_stocks(self.stocks_count)

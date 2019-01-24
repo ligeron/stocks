@@ -1,15 +1,12 @@
 from estimation import Estimation
-from data_provider import get_stock_data_by_symbol, get_distinct_attribute
+from data_provider import get_stock_data_by_symbol, print_attributes_by_symbol
 
-est = Estimation('2017-01-03', '2018-01-03')
-est.iterations_number = 1000
-est.stocks_count = 20
-est.stocks_with_max_ret = 500
+est = Estimation('2017-01-03', '2018-01-03', stocks_count=3, iterations_number=1000)
 
 amount = 100000
 
-buy_date = '2018-03-05'
-sell_date = '2018-07-25'
+buy_date = '2018-01-03'
+sell_date = '2019-01-03'
 sharpe_arr, all_weights, ret_arr = est.sharped_ratio_eval_random()
 columns = est.stocks.columns
 weights = all_weights[sharpe_arr.argmax(), :]
@@ -36,5 +33,7 @@ print total
 
 print (total / amount) * 100 - 100
 
-print get_distinct_attribute('sector')
-print get_distinct_attribute('industry')
+for symbol in stocks_with_weights.keys():
+    print_attributes_by_symbol(symbol, ['companyName', 'sector', 'industry','website'])
+    print stocks_with_weights[symbol]
+

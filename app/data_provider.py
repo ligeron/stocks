@@ -42,7 +42,7 @@ def get_url_content(url, verbose=False):
 def get_stock_symbols(limit=None):
     symbols = []
 
-    stock_names = get_stocks_data()
+    stock_names = get_stocks_info()
     i = 1
     for stock in stock_names:
         if limit and limit < i:
@@ -53,10 +53,18 @@ def get_stock_symbols(limit=None):
     return symbols
 
 
-def get_stocks_data():
+def get_stocks_info():
     if os.path.isfile(STOCK_NAMES_FILE_PATH):
         with open(STOCK_NAMES_FILE_PATH) as stock_names_file:
             return json.load(stock_names_file)
+
+
+def get_stock_info_by_symbol(symbol):
+    infos = get_stocks_info()
+    for info in infos:
+        if symbol == info['symbol']:
+            return info
+    return None
 
 
 def get_stock_data_by_symbol(symbol, date_from=None, date_to=None):
@@ -83,11 +91,11 @@ def get_stock_data_by_symbols(symbols, date_from=None, date_to=None):
 
 
 def get_distinct_attribute(attribute_name):
-    attribute_options = []
-    data = get_stocks_data()
-    for stock in data:
-        option = to_string(stock[attribute_name])
-        if not option in attribute_options:
-            attribute_options.append(option)
+    return list({stock[attribute_name] for stock in get_stocks_info()})
 
-    return attribute_options
+
+def print_attributes_by_symbol(symbol, attributes):
+    print '----------------'+symbol+'----------------'
+    info = get_stock_info_by_symbol(symbol)
+    for attribute in attributes:
+        print attribute + ': ' + info[attribute]
