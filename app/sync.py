@@ -17,7 +17,7 @@ def save_stocks(skip_exists=True):
 
         with PoolExecutor(max_workers=30) as executor:
             for result in executor.map(lambda url: get_url_content(url, False), urls):
-                if result:
+                if result and result['sector'] != '' and result['sector'] != None:
                     companies.append(result)
                 print result
 
@@ -55,7 +55,11 @@ def save_stock_data(symbol, first_valid_date, symbols_to_delete, skip_exists=Tru
             print('file for ' + symbol + ' already exists')
             return
         else:
-            stock_data.to_csv(file_path)
+            try:
+                stock_data.to_csv(file_path)
+            except Exception:
+                symbols_to_delete.append(symbol)
+                return
             print('file for ' + symbol + ' was saved successfully')
 
 
