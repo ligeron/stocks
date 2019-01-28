@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualisation</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous">
+    </script>
+    <script>
+        let charts = [];
+        google.charts.load('current', {packages: ['corechart', 'line']});
+        $.getJSON('result.json', function(json) {
+            let portfolio_number = 1;
+            json.portfolios.forEach(function(portfolio) {
+                let headers = ['company_name', 'weight', 'symbol', 'website', 'sector', 'industry'];
+                let stocks = getTableHead(headers);
+
+                for (var symbol in portfolio.stocks) {
+                    stock = portfolio.stocks[symbol];
+                    stock['weight'] = portfolio.weights[stock.symbol];
+                    stocks += getTableData(headers, stock);
+                }
+                stocks += '</table>';
+                stocks += addChart('portfolio' + portfolio_number, portfolio.rev_dynamic, 'Time', 'Money');
+
+                let div = getDiv(
+                    getHeader('Portfolio #' + portfolio_number, 4) +
+                    getTableByObj('Portfolio Values', portfolio, ['vol', 'sharpe', 'ret']) +
+                    getHeader('Stocks in portfolio', 4) +
+                    stocks
+                );
+                $('.content').append(div + '<hr>');
+                portfolio_number++;
+            });
+            drawCharts();
+        });
+
+        function getTableByObj(tableTitle, obj, proterties) {
+            let table = '<h6>' + tableTitle + '</h6>';
+            table += '<table class="table" style="width: 300px">';
+            for (var key in obj) {
+                if (proterties.indexOf(key) != -1) {
+                    table += '<tr>';
+                    table += '<td><strong>' + key + '</strong></td>';
+                    table += '<td>' + obj[key] + '</td>';
+                    table += '</tr>';
+                }
+            }
+            table += '</table>';
+            return table;
+
+        }
+
+        function getDiv(content, cl) {
+            return '<div class="' + cl + '">' + content + '</div>';
+        }
+
+        function getHeader(title, size) {
+            return '<h' + size + '>' + title + '</h' + size + '>';
+        }
+
+        function getTableHead(headers) {
+            let content = '<table class="table" ><tr>';
+
+            headers.forEach(function(title) {
+                content += '<th>' + title + '</th>';
+            });
+            return content + '</tr>';
+        }
+
+        function getTableData(headers, obj) {
+            content = '<tr>';
+            headers.forEach(function(title) {
+                content += '<td>' + obj[title] + '</td>';
+            });
+            return content + '</tr>';
+        }
+
+        function addChart(chartId, data, xTitle, yTitle) {
+            charts.push([chartId, data, xTitle, yTitle]);
+            return '<div id="' + chartId + '"></div>';
+        }
+
+        function drawChart(chartId, data, xTitle, yTitle) {
+            let chartData = [];
+            for (var key in data) {
+                let date = key.split('-');
+                date = new Date(parseInt(date[0]), parseInt(date[1]) - 1, parseInt(date[2]));
+                chartData.push([date, data[key]]);
+            }
+            chartData.sort(function(a, b) {
+                if (a[0] < b[0]) return -1;
+                if (a[0] > b[0]) return 1;
+                return 0;
+            });
+            google.charts.setOnLoadCallback(function() {
+                var data = new google.visualization.DataTable();
+                data.addColumn('date', 'X');
+                data.addColumn('number', 'Portfolio flow');
+                data.addRows(chartData);
+
+                var options = {
+                    hAxis: {
+                        title: xTitle
+                    },
+                    vAxis: {
+                        title: yTitle
+                    },
+                    backgroundColor: '#f1f8e9'
+                };
+
+                var chart = new google.visualization.LineChart($('#'+chartId)[0]);
+                chart.draw(data, options);
+            });
+        }
+
+        function drawCharts() {
+            charts.forEach(function([chartId, data, xTitle, yTitle]) {
+                drawChart(chartId, data, xTitle, yTitle);
+            });
+        }
+
+    </script>
+</head>
+<body>
+<div class="content">
+</div>
+
+</body>
+</html>

@@ -1,39 +1,34 @@
-from estimation import Estimation
-from data_provider import get_stock_data_by_symbol, print_attributes_by_symbol
+from portfolio_set import PortfolioSet
+from datetime import datetime
+from datetime import timedelta
+from json import JSONEncoder
+from settings import *
 
-est = Estimation('2017-01-03', '2018-01-03', stocks_count=3, iterations_number=1000)
+
+class MyEncoder(JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
 
 amount = 100000
+DATE_MASK = '%Y-%m-%d'
 
 buy_date = '2018-01-03'
-sell_date = '2019-01-03'
-sharpe_arr, all_weights, ret_arr = est.sharped_ratio_eval_random()
-columns = est.stocks.columns
-weights = all_weights[sharpe_arr.argmax(), :]
+sell_date = '2018-05-03'
+buy_date_obj = datetime.strptime(buy_date, DATE_MASK)
+sell_date_obj = datetime.strptime(sell_date, DATE_MASK)
 
-stocks_with_weights = {}
-i = 0
-for column in columns.values.tolist():
-    stocks_with_weights[column] = {"weight": weights[i]}
-    i += 1
+ps = PortfolioSet('2017-01-03', '2018-01-03', total_stocks_count=30, portfolios_count=5)
+print 'Calculate weights...'
+ps.process_weights()
 
-total = 0
+print 'Calculate sell dynamic...'
+current_sell_date_obj = datetime.strptime(buy_date, DATE_MASK)
+while current_sell_date_obj < sell_date_obj:
+    for portfolio in ps.portfolios:
+        portfolio.add_portfolio_rev(buy_date, current_sell_date_obj.strftime(DATE_MASK), 100000)
+    current_sell_date_obj = current_sell_date_obj + timedelta(days=1)
 
-for symbol in stocks_with_weights.keys():
-    stocks_with_weights[symbol]['buy_money'] = stocks_with_weights[symbol]['weight'] * amount
-    buy_price = get_stock_data_by_symbol(symbol, buy_date, buy_date)['close'].values[0]
-    stocks_with_weights[symbol]['number_fo_stocks'] = stocks_with_weights[symbol]['buy_money'] / buy_price
-    sell_price = get_stock_data_by_symbol(symbol, sell_date, sell_date)['close'].values[0]
-    stocks_with_weights[symbol]['sell_money'] = sell_price * stocks_with_weights[symbol]['number_fo_stocks']
-    total += stocks_with_weights[symbol]['sell_money']
-
-print stocks_with_weights
-
-print total
-
-print (total / amount) * 100 - 100
-
-for symbol in stocks_with_weights.keys():
-    print_attributes_by_symbol(symbol, ['companyName', 'sector', 'industry','website'])
-    print stocks_with_weights[symbol]
-
+result_file = open(RESULT_FILE_PATH, "w")
+result_file.write(MyEncoder().encode(ps))
+result_file.close()
