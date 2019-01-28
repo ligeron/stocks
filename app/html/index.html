@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Visualisation</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -20,13 +22,18 @@
                 let headers = ['company_name', 'weight', 'symbol', 'website', 'sector', 'industry'];
                 let stocks = getTableHead(headers);
 
+                let stockNames = [];
                 for (var symbol in portfolio.stocks) {
                     stock = portfolio.stocks[symbol];
+                    stockNames.push(stock.company_name)
                     stock['weight'] = portfolio.weights[stock.symbol];
                     stocks += getTableData(headers, stock);
                 }
                 stocks += '</table>';
-                stocks += addChart('portfolio' + portfolio_number, portfolio.rev_dynamic, 'Time', 'Money');
+                let chartData = convertChartData(portfolio.rev_dynamic);
+                stocks += addChart('portfolio' + portfolio_number, chartData, ['Portfolio Flow']);
+                let chartDataStocks = convertChartData(portfolio.rev_dynamic_stocks, true);
+                stocks += addChart('portfolio_stocks' + portfolio_number, chartDataStocks, stockNames);
 
                 let div = getDiv(
                     getHeader('Portfolio #' + portfolio_number, 4) +
@@ -37,7 +44,6 @@
                 $('.content').append(div + '<hr>');
                 portfolio_number++;
             });
-            drawCharts();
         });
 
         function getTableByObj(tableTitle, obj, proterties) {
@@ -81,18 +87,7 @@
             return content + '</tr>';
         }
 
-        function addChart(chartId, data, xTitle, yTitle) {
-            charts.push([chartId, data, xTitle, yTitle]);
-            return '<div id="' + chartId + '"></div>';
-        }
-
-        function drawChart(chartId, data, xTitle, yTitle) {
-            let chartData = [];
-            for (var key in data) {
-                let date = key.split('-');
-                date = new Date(parseInt(date[0]), parseInt(date[1]) - 1, parseInt(date[2]));
-                chartData.push([date, data[key]]);
-            }
+        function addChart(chartId, chartData, columns) {
             chartData.sort(function(a, b) {
                 if (a[0] < b[0]) return -1;
                 if (a[0] > b[0]) return 1;
@@ -101,28 +96,45 @@
             google.charts.setOnLoadCallback(function() {
                 var data = new google.visualization.DataTable();
                 data.addColumn('date', 'X');
-                data.addColumn('number', 'Portfolio flow');
+                columns.forEach(function(column) {
+                    data.addColumn('number', column);
+                });
+
                 data.addRows(chartData);
 
                 var options = {
                     hAxis: {
-                        title: xTitle
+                        title: 'Time'
                     },
                     vAxis: {
-                        title: yTitle
+                        title: 'Money'
                     },
                     backgroundColor: '#f1f8e9'
                 };
 
-                var chart = new google.visualization.LineChart($('#'+chartId)[0]);
+                var chart = new google.visualization.LineChart($('#' + chartId)[0]);
                 chart.draw(data, options);
             });
+            return '<div id="' + chartId + '" style="height: 300px"></div>';
         }
 
-        function drawCharts() {
-            charts.forEach(function([chartId, data, xTitle, yTitle]) {
-                drawChart(chartId, data, xTitle, yTitle);
-            });
+        function convertChartData(data, multiple = false) {
+            let chartData = [];
+            for (var key in data) {
+                let date = key.split('-');
+                date = new Date(parseInt(date[0]), parseInt(date[1]) - 1, parseInt(date[2]));
+                if (!multiple) {
+                    chartData.push([date, data[key]]);
+                } else {
+                    var row = [date];
+                    for (var symbol in data[key]) {
+                        row.push(data[key][symbol]);
+                    }
+                    chartData.push(row);
+                }
+            }
+
+            return chartData;
         }
 
     </script>

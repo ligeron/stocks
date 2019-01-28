@@ -14,6 +14,7 @@ class Portfolio:
         self.sharpe = None
         self.weights = None
         self.rev_dynamic = {}
+        self.rev_dynamic_stocks = {}
 
     def add_stock(self, stock):
         self.stocks[stock.symbol] = stock
@@ -67,7 +68,8 @@ class Portfolio:
                 return
             number_fo_stocks = buy_money / buy_price
             sell_money = sell_price * number_fo_stocks
+            if sell_date not in dict.keys(self.rev_dynamic_stocks):
+                self.rev_dynamic_stocks[sell_date] = {}
+            self.rev_dynamic_stocks[sell_date][symbol] = sell_money
             total += sell_money
         self.rev_dynamic[sell_date] = total
-
-

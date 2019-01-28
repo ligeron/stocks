@@ -1,5 +1,4 @@
 from portfolio_set import PortfolioSet
-from datetime import datetime
 from datetime import timedelta
 from json import JSONEncoder
 from settings import *
@@ -14,15 +13,16 @@ amount = 100000
 DATE_MASK = '%Y-%m-%d'
 
 buy_date = '2018-01-03'
-sell_date = '2018-05-03'
+sell_date = '2018-10-03'
 buy_date_obj = datetime.strptime(buy_date, DATE_MASK)
 sell_date_obj = datetime.strptime(sell_date, DATE_MASK)
 
 ps = PortfolioSet('2017-01-03', '2018-01-03', total_stocks_count=30, portfolios_count=5)
+
 print 'Calculate weights...'
 ps.process_weights()
-
 print 'Calculate sell dynamic...'
+
 current_sell_date_obj = datetime.strptime(buy_date, DATE_MASK)
 while current_sell_date_obj < sell_date_obj:
     for portfolio in ps.portfolios:
