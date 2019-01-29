@@ -18,12 +18,16 @@ class Portfolio:
         self.buy_date = '2019-01-03'
 
         self.number_of_stocks = {}
+        self.invested_money = {}
 
         self.rev_dynamic = {}
         self.rev_dynamic_stocks = {}
 
     def add_stock(self, stock):
         self.stocks[stock.symbol] = stock
+
+    def remove_stock(self, stock):
+        del self.stocks[stock.symbol]
 
     def process_weights(self):
         stocks = self.get_stock_data()
@@ -63,12 +67,25 @@ class Portfolio:
 
         return stocks
 
-    def calculate_number_of_stocks(self):
+    def calculate_number_of_stocks(self, rebalance=False):
+        total_investments = 0
         for symbol, stock in self.stocks.iteritems():
             weight = self.weights[symbol]
             buy_money = weight * self.investments_amount
-            buy_price = stock.get_close_quote_by_date(self.buy_date)
-            self.number_of_stocks[symbol] = buy_money / buy_price
+            self.invested_money[symbol] = stock.get_close_quote_by_date(self.buy_date)
+            if rebalance:
+                number_of_stocks = round(buy_money / self.invested_money[symbol])
+                number_of_stocks = number_of_stocks if number_of_stocks != 0 else 1
+
+            else:
+                number_of_stocks = buy_money / self.invested_money[symbol]
+            total_investments += self.invested_money[symbol] * number_of_stocks
+            self.number_of_stocks[symbol] = number_of_stocks
+        if rebalance:
+            self.investments_amount = total_investments
+            for symbol, stock in self.stocks.iteritems():
+                buy_money = self.number_of_stocks[symbol] * self.invested_money[symbol]
+                self.weights[symbol] = buy_money / total_investments
 
     def add_portfolio_rev(self, sell_date):
         total = 0
