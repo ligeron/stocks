@@ -15,6 +15,8 @@ DATE_TO = datetime(2019, 12, 22)
 
 RANDOM_SEED = 11
 
+DATE_MASK = '%Y-%m-%d'
+
 FOLDER = os.path.dirname(os.path.abspath(__file__)) + '/' + STOCKS_FOLDER + '/'
 FOLDER_HTML = os.path.dirname(os.path.abspath(__file__)) + '/html/'
 STOCK_NAMES_FILE_PATH = FOLDER + STOCK_NAMES_FILE

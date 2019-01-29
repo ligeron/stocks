@@ -13,6 +13,12 @@ class Portfolio:
         self.vol = None
         self.sharpe = None
         self.weights = None
+
+        self.investments_amount = 0
+        self.buy_date = '2019-01-03'
+
+        self.number_of_stocks = {}
+
         self.rev_dynamic = {}
         self.rev_dynamic_stocks = {}
 
@@ -57,17 +63,23 @@ class Portfolio:
 
         return stocks
 
-    def add_portfolio_rev(self, buy_date, sell_date, investments_amount):
-        total = 0
+    def calculate_number_of_stocks(self):
         for symbol, stock in self.stocks.iteritems():
             weight = self.weights[symbol]
-            buy_money = weight * investments_amount
-            buy_price = stock.get_close_quote_by_date(buy_date)
+            buy_money = weight * self.investments_amount
+            buy_price = stock.get_close_quote_by_date(self.buy_date)
+            self.number_of_stocks[symbol] = buy_money / buy_price
+
+    def add_portfolio_rev(self, sell_date):
+        total = 0
+        for symbol, stock in self.stocks.iteritems():
             sell_price = stock.get_close_quote_by_date(sell_date)
-            if not buy_price or not sell_price:
+            if not sell_price:
                 return
-            number_fo_stocks = buy_money / buy_price
-            sell_money = sell_price * number_fo_stocks
+            if not symbol in self.number_of_stocks:
+                raise Exception('Please call calculate_number_of_stocks method firstly')
+            number_of_stocks = self.number_of_stocks[symbol]
+            sell_money = sell_price * number_of_stocks
             if sell_date not in dict.keys(self.rev_dynamic_stocks):
                 self.rev_dynamic_stocks[sell_date] = {}
             self.rev_dynamic_stocks[sell_date][symbol] = sell_money

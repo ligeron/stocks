@@ -19,7 +19,7 @@
         $.getJSON('result.json', function(json) {
             let portfolio_number = 1;
             json.portfolios.forEach(function(portfolio) {
-                let headers = ['company_name', 'weight', 'symbol', 'website', 'sector', 'industry'];
+                let headers = ['company_name', 'weight', 'symbol', 'website', 'sector', 'industry', 'number_of_stocks'];
                 let stocks = getTableHead(headers);
 
                 let stockNames = [];
@@ -27,6 +27,7 @@
                     stock = portfolio.stocks[symbol];
                     stockNames.push(stock.company_name)
                     stock['weight'] = portfolio.weights[stock.symbol];
+                    stock['number_of_stocks'] = portfolio.number_of_stocks[stock.symbol];
                     stocks += getTableData(headers, stock);
                 }
                 stocks += '</table>';
