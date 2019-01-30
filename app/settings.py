@@ -10,7 +10,7 @@ STOCKS_FOLDER = 'files/stocks'
 STOCK_NAMES_FILE = '!stock_names.json'
 SR_FILE = '!sr_by_company.json'
 
-DATE_FROM = datetime(2017, 1, 1)
+DATE_FROM = datetime(2015, 1, 3)
 DATE_TO = datetime(2019, 12, 22)
 
 RANDOM_SEED = 11
@@ -21,4 +21,4 @@ FOLDER = os.path.dirname(os.path.abspath(__file__)) + '/' + STOCKS_FOLDER + '/'
 FOLDER_HTML = os.path.dirname(os.path.abspath(__file__)) + '/html/'
 STOCK_NAMES_FILE_PATH = FOLDER + STOCK_NAMES_FILE
 RESULT_FILE_PATH = FOLDER_HTML + 'result.json'
-SR_FILE_PATH = FOLDER + SR_FILE
+SR_FOLDER_PATH = FOLDER + 'SR/'

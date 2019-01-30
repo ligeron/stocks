@@ -71,7 +71,12 @@ def get_stock_data_by_symbol(symbol, date_from=None, date_to=None):
     stocks = pd.read_csv(FOLDER + symbol + '.csv', index_col='date', parse_dates=True)
 
     if date_from or date_to:
+        if stocks.first_valid_index() > datetime.strptime(date_from, DATE_MASK):
+            return None
+
         stocks = stocks.loc[date_from:date_to]
+        if len(stocks) == 0:
+            return None
 
     return stocks
 
@@ -81,8 +86,13 @@ def get_stock_data_by_symbols(symbols, date_from=None, date_to=None):
     valid_symbols = []
     for symbol in symbols:
         stocks = get_stock_data_by_symbol(symbol, date_from, date_to)
+        if stocks is None:
+            continue
         stock_datas.append(stocks['close'])
         valid_symbols.append(symbol)
+
+    if len(valid_symbols) == 0:
+        return None
 
     stocks = pd.concat(stock_datas, axis=1)
     stocks.columns = valid_symbols

@@ -11,6 +11,7 @@ class PortfolioSet:
     def init(self, date_from, date_to, portfolios_count, total_stocks_count):
         est = Estimation(date_from, date_to)
         best_stocks = est.get_best_stocks(total_stocks_count)
+
         stocks_count = total_stocks_count / portfolios_count
         portfolio_number = portfolios_count
         while portfolio_number > 0:

@@ -12,12 +12,12 @@ class MyEncoder(JSONEncoder):
 amount = 10000
 DATE_MASK = '%Y-%m-%d'
 
-buy_date = '2018-01-03'
-sell_date = '2019-11-22'
+buy_date = '2017-01-05'
+sell_date = '2018-01-04'
 buy_date_obj = datetime.strptime(buy_date, DATE_MASK)
 sell_date_obj = datetime.strptime(sell_date, DATE_MASK)
 
-ps = PortfolioSet('2017-01-03', '2018-01-03', total_stocks_count=5, portfolios_count=1)
+ps = PortfolioSet('2016-01-13', '2017-01-03', total_stocks_count=20, portfolios_count=3)
 
 print 'Calculate weights...'
 ps.process_weights()

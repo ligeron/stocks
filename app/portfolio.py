@@ -28,6 +28,8 @@ class Portfolio:
 
     def remove_stock(self, stock):
         del self.stocks[stock.symbol]
+        del self.weights[stock.symbol]
+
 
     def process_weights(self):
         stocks = self.get_stock_data()
@@ -69,11 +71,17 @@ class Portfolio:
 
     def calculate_number_of_stocks(self, rebalance=False):
         total_investments = 0
+        stocks_to_delete = []
         for symbol, stock in self.stocks.iteritems():
             weight = self.weights[symbol]
             buy_money = weight * self.investments_amount
             self.invested_money[symbol] = stock.get_close_quote_by_date(self.buy_date)
+            if not self.invested_money[symbol]:
+                stocks_to_delete.append(stock)
+                continue
             if rebalance:
+                if not self.invested_money[symbol]:
+                    x =1
                 number_of_stocks = round(buy_money / self.invested_money[symbol])
                 number_of_stocks = number_of_stocks if number_of_stocks != 0 else 1
 
@@ -81,6 +89,8 @@ class Portfolio:
                 number_of_stocks = buy_money / self.invested_money[symbol]
             total_investments += self.invested_money[symbol] * number_of_stocks
             self.number_of_stocks[symbol] = number_of_stocks
+        for stock_to_delete in stocks_to_delete:
+            self.remove_stock(stock_to_delete)
         if rebalance:
             self.investments_amount = total_investments
             for symbol, stock in self.stocks.iteritems():

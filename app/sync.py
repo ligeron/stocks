@@ -26,12 +26,9 @@ def save_stocks(skip_exists=True):
         stock_names_file.close()
 
     symbols = get_stock_symbols()
-    first_symbol = symbols[0]
-    first_stock_data = web.DataReader(first_symbol, CHANNEL, DATE_FROM, DATE_TO)
-    first_valid_date = first_stock_data.first_valid_index()
     symbols_to_delete = []
     with PoolExecutor(max_workers=30) as executor:
-        for _ in executor.map(lambda s: save_stock_data(s, first_valid_date, symbols_to_delete, skip_exists), symbols):
+        for _ in executor.map(lambda s: save_stock_data(s, symbols_to_delete, skip_exists), symbols):
             pass
     print('Symbols to delete:')
     print(symbols_to_delete)
@@ -40,14 +37,12 @@ def save_stocks(skip_exists=True):
     print('Finish')
 
 
-def save_stock_data(symbol, first_valid_date, symbols_to_delete, skip_exists=True):
+def save_stock_data(symbol, symbols_to_delete, skip_exists=True):
     try:
         stock_data = web.DataReader(symbol, CHANNEL, DATE_FROM, DATE_TO)
-    except Exception:
+    except Exception as e:
         symbols_to_delete.append(symbol)
         return
-    if first_valid_date != stock_data.first_valid_index():
-        symbols_to_delete.append(symbol)
     else:
         file_path = FOLDER + symbol + '.csv'
         if skip_exists and os.path.isfile(file_path):
@@ -56,7 +51,7 @@ def save_stock_data(symbol, first_valid_date, symbols_to_delete, skip_exists=Tru
         else:
             try:
                 stock_data.to_csv(file_path)
-            except Exception:
+            except Exception as e:
                 symbols_to_delete.append(symbol)
                 return
             print('file for ' + symbol + ' was saved successfully')
