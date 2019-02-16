@@ -1,8 +1,10 @@
 import pandas_datareader as web
+import requests
 from settings import *
 from data_provider import to_string, delete_symbol, get_stock_symbols, get_url_content
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 import json
+import bs4 as bs
 
 
 def save_stocks(skip_exists=True):
@@ -10,9 +12,11 @@ def save_stocks(skip_exists=True):
         stock_names = get_url_content(STOCKS_URL)
         companies = []
         urls = []
-
+        best_symbols = save_sp500_tickers()
         for stock_data in stock_names:
             symbol = to_string(stock_data['symbol'])
+            if symbol not in best_symbols:
+                continue
             urls.append(COMPANY_URL.format(symbol))
 
         with PoolExecutor(max_workers=30) as executor:
@@ -57,4 +61,17 @@ def save_stock_data(symbol, symbols_to_delete, skip_exists=True):
             print('file for ' + symbol + ' was saved successfully')
 
 
+def save_sp500_tickers():
+    resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+    soup = bs.BeautifulSoup(resp.text,  "lxml")
+    table = soup.find('table', {'class':'wikitable sortable'})
+    tickers = []
+    for row in table.findAll('tr')[1:]:
+        ticker = to_string(row.findAll('td')[1].text)
+        tickers.append(ticker)
+
+    return tickers
+
+
+# print save_sp500_tickers()
 save_stocks()

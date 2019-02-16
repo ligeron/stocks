@@ -3,3 +3,5 @@ pandas_datareader
 numpy
 scipy
 futures
+beautifulsoup4
+matplotlib
