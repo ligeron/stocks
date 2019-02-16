@@ -12,7 +12,7 @@ from settings import *
 style.use('ggplot')
 
 def compile_data():
-    main_df = get_stock_data_by_symbols(get_stock_symbols())
+    main_df = get_stock_data_by_symbols(get_stock_symbols(180))
         
     print(main_df.tail())
     main_df.to_csv('sp500_joined_closses.csv')
@@ -44,5 +44,5 @@ def visualize_data():
     heatmap.set_clim(-1,1)
     plt.tight_layout()
     plt.show()
-
+compile_data()
 visualize_data()

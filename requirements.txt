@@ -5,3 +5,4 @@ scipy
 futures
 beautifulsoup4
 matplotlib
+sklearn
