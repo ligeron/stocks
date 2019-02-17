@@ -12,7 +12,7 @@ from settings import *
 style.use('ggplot')
 
 def compile_data():
-    main_df = get_stock_data_by_symbols(get_stock_symbols(180))
+    main_df = get_stock_data_by_symbols(get_stock_symbols())
         
     print(main_df.tail())
     main_df.to_csv('sp500_joined_closses.csv')

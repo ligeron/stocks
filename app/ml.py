@@ -64,22 +64,29 @@ def extract_featuresets(ticker):
     return X, y, df
 
 
-def do_ml(ticker):
-    X, y, df = extract_featuresets(ticker)
+def do_ml(ticker, test_size=0.25):
+    correlation_set, ticker_decision_set, df = extract_featuresets(ticker)
+    lenght = len(ticker_decision_set)
+    train_size = 1 - test_size
+    train_lenght = int(round(train_size * lenght))
+    test_lenght = lenght - train_lenght
+    train_correlation_set = correlation_set[:train_lenght]
+    train_ticker_decision_set = ticker_decision_set[:train_lenght]
+    test_correlation_set = correlation_set[train_lenght:]
+    test_ticker_decision_set = ticker_decision_set[train_lenght:]
+    test_df = df.tail(test_lenght)
 
-    X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=0.25)
-
-    clf = VotingClassifier([('lsvc', svm.LinearSVC()),
-                            ('knn', neighbors.KNeighborsClassifier()),
-                            ('rfor', RandomForestClassifier(n_estimators=10))])
-
-    clf.fit(X_train, y_train)
-    confidence = clf.score(X_test, y_test)
+    clf = VotingClassifier([
+                            ('lsvc', svm.LinearSVC()),
+                            # ('knn', neighbors.KNeighborsClassifier()),
+                            # ('rfor', RandomForestClassifier(n_estimators=100))
+    ])
+    clf.fit(train_correlation_set, train_ticker_decision_set)
+    confidence = clf.score(test_correlation_set, test_ticker_decision_set)
     print('Accuracy', confidence)
-    predictions = clf.predict(X_test)
+    predictions = clf.predict(test_correlation_set)
     print('Predicted spread:', Counter(predictions))
 
-    return confidence
+    return predictions, test_df
 
 
-do_ml('BAC')
