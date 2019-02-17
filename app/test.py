@@ -38,5 +38,5 @@ for date, row in test_df.iterrows():
 if money == 0:
     money = price * number_of_stocks
 
-print money
-print transaction_spends
+print(money)
+print(transaction_spends)
